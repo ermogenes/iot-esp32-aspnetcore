@@ -6,7 +6,7 @@ Publicando dados colhidos com ESP32 usando ASP.NET Core
 
 Hardware necessário: https://wokwi.com/projects/358909044834951169
 
-Faça as configurações necessárias [aqui](UrnaEsp32/Urna.ino/Urna.ino) e aplique nos dispositivos.
+Faça as configurações necessárias [aqui](Urna/Urna.ino) e aplique nos dispositivos.
 
 ## Como usar
 
