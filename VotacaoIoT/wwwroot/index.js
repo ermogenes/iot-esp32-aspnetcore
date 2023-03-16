@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
   await atualizaPlacarGeral(); // imediatamente
-  await setInterval(atualizaPlacarGeral, 2000); // repete a cada 2s
+  await setInterval(atualizaPlacarGeral, 1000); // repete a cada 1s
 });
 
 const atualizaPlacarGeral = async () => {

@@ -55,7 +55,11 @@ public class CentralDeApuracao
                 if (placarAnterior == null)
                     _placarUrnas.Add(placarUrna!);
                 else
-                    placarAnterior = placarUrna;
+                {
+                    placarAnterior.vermelho = placarUrna!.vermelho;
+                    placarAnterior.branco = placarUrna!.branco;
+                    placarAnterior.azul = placarUrna!.azul;
+                }
             }
             // Ignora os erros de HTTP
             catch (System.Net.Http.HttpRequestException)
@@ -80,8 +84,8 @@ class TimerAtualizacao : IHostedService
         _apuracao = apuracao;
     public Task StartAsync(CancellationToken ct)
     {
-        // Executa "AtualizaPlacarGeral" cada 5 segundos
-        new Timer(ExecutaAcao!, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        // Executa "AtualizaPlacarGeral" cada 1 segundo
+        new Timer(ExecutaAcao!, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
         return Task.CompletedTask;
     }
     private async void ExecutaAcao(object state) =>
