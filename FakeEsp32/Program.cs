@@ -3,8 +3,6 @@ var app = builder.Build();
 
 const string NomeUrna = "fake-01";
 
-app.MapGet("/", () => new { online = true, urna = NomeUrna });
-app.MapGet("/placar", () => new { urna = NomeUrna, vermelhos = 0, brancos = 0, azuis = 0 });
-app.MapGet("/reiniciar", () => { return Results.Ok(); });
+app.MapGet("/placar", () => new { nome = NomeUrna, vermelho = 0, branco = 0, azul = 0 });
 
 app.Run();

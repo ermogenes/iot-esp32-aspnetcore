@@ -1,72 +1,92 @@
 var builder = WebApplication.CreateBuilder(args);
 
-var votacao = new Votacao();
-await BuscaPorUrnas(votacao);
-builder.Services.AddSingleton<Votacao>(votacao);
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<CentralDeApuracao>();
+builder.Services.AddHostedService<TimerAtualizacao>();
 
 var app = builder.Build();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.MapGet("/api/placar", (Votacao votacao) => Results.Ok<Votacao>(votacao));
+app.MapGet("/placarGeral", (CentralDeApuracao apuracao) =>
+    Results.Ok<PlacarDTO>(apuracao.PlacarGeral)
+);
 
 app.Run();
 
-async Task BuscaPorUrnas(Votacao votacao)
+public class PlacarDTO
 {
-    // Obtém endpoints do mecanismo de configuração
-    var endpointUrnas = builder.Configuration["Urnas"]!.Split(",");
+    public string nome { get; set; } = default!;
+    public int vermelho { get; set; }
+    public int branco { get; set; }
+    public int azul { get; set; }
+}
 
-    // Verifica cada urna e adiciona na lista
-    foreach (var endpointUrna in endpointUrnas)
+public class CentralDeApuracao
+{
+    private readonly ILogger<CentralDeApuracao> _logger;
+    private readonly IHttpClientFactory _http;
+    private List<string> _endpointsUrnas { get; set; } = default!;
+    private List<PlacarDTO> _placarUrnas { get; set; } = new();
+    public PlacarDTO PlacarGeral { get; private set; } = new();
+    public CentralDeApuracao(IHttpClientFactory http, ILogger<CentralDeApuracao> logger, IConfiguration config)
     {
-        using var client = new HttpClient();
-        try
+        _http = http;
+        _logger = logger;
+        _endpointsUrnas = config["EndpointsUrnas"]!.Split(",").ToList();
+    }
+    public async Task AtualizaPlacarGeral()
+    {
+        using var client = _http.CreateClient();
+
+        // Atualiza o placar de cada urna configurada
+        foreach (var url in _endpointsUrnas)
         {
-            var result = await client.GetFromJsonAsync<InfoDTO>(endpointUrna);
-            votacao.AdicionaUrna(result!.urna);
+            try
+            {
+                // Obtém os placares atuais na urna e no servidor
+                var placarUrna = await client.GetFromJsonAsync<PlacarDTO>(url);
+                var placarAnterior = _placarUrnas.SingleOrDefault<PlacarDTO>(
+                    p => p.nome == placarUrna!.nome
+                );
+
+                // Cria no primeiro acesso, atualiza nos demais
+                if (placarAnterior == null)
+                    _placarUrnas.Add(placarUrna!);
+                else
+                    placarAnterior = placarUrna;
+            }
+            // Ignora os erros de HTTP
+            catch (System.Net.Http.HttpRequestException)
+            {
+                _logger.LogError($"Erro ao acessar {url}");
+            }
         }
-        catch (System.Net.Http.HttpRequestException) { }
+
+        // Calcula soma dos placares de todas as urnas online
+        PlacarGeral.vermelho = _placarUrnas.Sum(p => p.vermelho);
+        PlacarGeral.branco = _placarUrnas.Sum(p => p.branco);
+        PlacarGeral.azul = _placarUrnas.Sum(p => p.azul);
+
+        _logger.LogInformation($"Placares atualizados em {DateTime.Now}");
     }
 }
 
-class Votacao
+class TimerAtualizacao : IHostedService
 {
-    public List<Placar> Placares { get; set; } = new();
-
-    public int Vermelhos { get => Placares.Sum<Placar>(u => u.vermelhos); }
-    public int Brancos { get => Placares.Sum<Placar>(u => u.brancos); }
-    public int Azuis { get => Placares.Sum<Placar>(u => u.azuis); }
-
-    public void AdicionaUrna(string nomeUrna)
+    private readonly CentralDeApuracao _apuracao;
+    public TimerAtualizacao(CentralDeApuracao apuracao) =>
+        _apuracao = apuracao;
+    public Task StartAsync(CancellationToken ct)
     {
-        Placares.Add(new Placar { urna = nomeUrna });
+        // Executa "AtualizaPlacarGeral" cada 5 segundos
+        new Timer(ExecutaAcao!, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        return Task.CompletedTask;
     }
+    private async void ExecutaAcao(object state) =>
+        await _apuracao.AtualizaPlacarGeral();
 
-    public void AtualizaPlacar(Placar placarAtualizado)
-    {
-        var placar = Placares.Single<Placar>(
-            p => p.urna == placarAtualizado.urna
-        );
-        placar = placarAtualizado;
-    }
-
-    public void ZeraPlacar(string urna)
-    {
-        var placar = Placares.Single<Placar>(p => p.urna == urna);
-        placar.vermelhos = 0;
-        placar.brancos = 0;
-        placar.azuis = 0;
-    }
+    public Task StopAsync(CancellationToken ct) =>
+        Task.CompletedTask;
 }
-
-class Placar
-{
-    public string urna { get; set; } = default!;
-    public int vermelhos { get; set; }
-    public int brancos { get; set; }
-    public int azuis { get; set; }
-}
-
-record InfoDTO(bool online, string urna);
