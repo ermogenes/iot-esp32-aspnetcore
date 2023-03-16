@@ -6,6 +6,8 @@ Publicando dados colhidos com ESP32 usando ASP.NET Core
 
 Hardware necessário: https://wokwi.com/projects/358909044834951169
 
+[![](art/protoboard-low.jpg)](art/protoboard.jpg)
+
 Faça as configurações necessárias [aqui](Urna/Urna.ino) e aplique nos dispositivos.
 
 ## Como usar
@@ -29,3 +31,5 @@ Use https://localhost.run/ para tunelar localhost para a web:
 ```sh
 ssh -R 80:localhost:5000 nokey@localhost.run
 ```
+
+![](art/localhost_5000_.png)
