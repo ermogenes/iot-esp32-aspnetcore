@@ -1,4 +1,4 @@
-# poc-esp32-aspnetcore
+# iot-esp32-aspnetcore
 
 Publicando dados colhidos com ESP32 usando ASP.NET Core
 
@@ -15,7 +15,7 @@ Faça as configurações necessárias [aqui](Urna/Urna.ino) e aplique nos dispos
 Baixe esse repo:
 
 ```sh
-git clone https://github.com/ermogenes/poc-esp32-aspnetcore.git
+git clone https://github.com/ermogenes/iot-esp32-aspnetcore.git
 ```
 
 Configure os endpoints das urnas criadas [aqui](VotacaoIoT/appsettings.json).
@@ -23,7 +23,7 @@ Configure os endpoints das urnas criadas [aqui](VotacaoIoT/appsettings.json).
 Inicie a aplicação:
 
 ```sh
-dotnet run --project ./poc-esp32-aspnetcore/VotacaoIot/VotacaoIoT.csproj
+dotnet run --project ./iot-esp32-aspnetcore/VotacaoIot/VotacaoIoT.csproj
 ```
 
 Use https://localhost.run/ para tunelar localhost para a web:
