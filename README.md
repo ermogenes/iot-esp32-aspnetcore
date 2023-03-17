@@ -8,6 +8,8 @@ Hardware necessário: https://wokwi.com/projects/358909044834951169
 
 [![](art/protoboards-low.jpg)](art/protoboards.jpg)
 
+<sup>_Cometi um erro ao encaixar os jumpers na protoboard inferior (as demais estão corretas). Você consegue identificá-lo?_</sup>
+
 Faça as configurações necessárias [aqui](Urna/Urna.ino) e aplique nos dispositivos.
 
 ## Como usar
